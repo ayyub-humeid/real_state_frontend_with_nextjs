@@ -8,9 +8,9 @@ import axios from 'axios';
  * - Handles validation errors (422), unauthorized (401), and network errors
  */
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://real-estate-system.test/api/',
   timeout: 10000,
-  withCredentials: true, // Send cookies automatically
+  withCredentials: false, // Send cookies automatically
   headers: {
     'Content-Type': 'application/json'
   },
@@ -72,5 +72,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 export default api;
