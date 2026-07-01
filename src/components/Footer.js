@@ -1,4 +1,6 @@
 import React  from "react"; 
+import Link from "next/link";
+
 export default function Footer() {
     return (
         <footer className="w-full border-t border-outline-variant/30 dark:border-outline/20 bg-surface-container-lowest dark:bg-inverse-surface">
@@ -11,7 +13,7 @@ export default function Footer() {
         <a className="text-on-surface-variant dark:text-surface-variant font-label-caps hover:text-primary hover:underline transition-all" href="#">Privacy Policy</a>
         <a className="text-on-surface-variant dark:text-surface-variant font-label-caps hover:text-primary hover:underline transition-all" href="#">Terms of Service</a>
         <a className="text-on-surface-variant dark:text-surface-variant font-label-caps hover:text-primary hover:underline transition-all" href="#">Cookie Policy</a>
-        <a className="text-on-surface-variant dark:text-surface-variant font-label-caps hover:text-primary hover:underline transition-all" href="#">Contact Support</a>
+        <Link className="text-on-surface-variant dark:text-surface-variant font-label-caps hover:text-primary hover:underline transition-all" href="/contact">Contact Support</Link>
         </nav>
         </div>
         </footer>
