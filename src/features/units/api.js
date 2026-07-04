@@ -7,10 +7,13 @@
 import api from '@/lib/axios';
 
 export const UnitsApi = {
-  getAll: async () => {
-    return api.get('units');
+  getAll: async (params = {}) => {
+    return api.get('units', { params });
   },
   getFeatured: async () => {
     return api.get('featured-units');
+  },
+  getById: async (id) => {
+    return api.get(`units/${id}`);
   }
 };
