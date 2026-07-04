@@ -1,13 +1,14 @@
-export default function PropertyCard({unit}) {
-  console.log(unit);
+import Link from 'next/link';
+
+export default function PropertyCard({ unit }) {
   return (
-    <div className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-outline-variant/20">
-      
+    <Link href={`/units/${unit.id}`} className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-outline-variant/20 block">
+
       <div className="relative aspect-video">
-        <img 
+        <img
           alt="property image"
           className="w-full h-full object-cover"
-          src={unit.image_url}
+          src={unit.main_image_url}
         />
 
         <div className="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-caps font-label-caps">
@@ -27,7 +28,7 @@ export default function PropertyCard({unit}) {
         </div>
 
         <p className="text-on-surface-variant font-body-md line-clamp-2">
-            {unit.property.description}
+          {unit.property.description}
         </p>
 
         <div className="pt-4 border-t border-outline-variant flex gap-6 text-on-surface-variant">
@@ -47,6 +48,6 @@ export default function PropertyCard({unit}) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
