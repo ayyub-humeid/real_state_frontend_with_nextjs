@@ -50,7 +50,7 @@ export default function AgencyDetailPage({ params }) {
                 <img 
                   className="w-full h-full object-contain" 
                   alt={`${agency.name} logo`} 
-                  src={agency.logo}
+                  src={agency.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(agency.name)}&background=0D8ABC&color=fff&size=128&bold=true`}
                 />
               </div>
               {agency.verified && (

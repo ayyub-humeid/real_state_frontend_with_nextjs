@@ -43,7 +43,7 @@ export default function AgencyCard({ agency }) {
             <img 
               className="w-full h-full object-contain" 
               alt={`${name} Logo`} 
-              src={logo}
+              src={logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=128&bold=true`}
             />
           </div>
           <div>

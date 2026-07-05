@@ -173,7 +173,7 @@ export const AgenciesApi = {
     try {
       // Attempt API call
       const response = await api.get('agencies', { params });
-      return response.data || response;
+      return response;
     } catch (e) {
       console.warn('Agencies API not found or failing, using mock fallback data:', e);
       
@@ -231,7 +231,7 @@ export const AgenciesApi = {
   getById: async (id) => {
     try {
       const response = await api.get(`agencies/${id}`);
-      return response.data || response;
+      return response;
     } catch (e) {
       console.warn(`Agency API getById(${id}) failing, using mock fallback:`, e);
       const agency = MOCK_AGENCIES.find(a => a.id === parseInt(id));
