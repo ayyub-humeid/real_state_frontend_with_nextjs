@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext';
 
 const ROLES = [
   { value: 'tenant', label: 'Renter', icon: 'person', desc: 'Looking for a place to rent' },
-  { value: 'property_manager', label: 'Property Manager', icon: 'manage_accounts', desc: 'Managing properties & units' },
   { value: 'agency', label: 'Agency', icon: 'business', desc: 'Running a real estate agency' },
 ];
 

@@ -120,13 +120,13 @@ export const Plans = () => {
                                 })}
                             </ul>
 
-                            <button
-                                className={`w-full py-4 rounded-xl font-button transition-all ${isRecommended
+                            <Link  href={`/checkout/${plan.slug}`}
+                                className={`w-full text-center py-4 rounded-xl font-button transition-all ${isRecommended
                                     ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 hover:opacity-90'
                                     : 'border-2 border-primary text-primary hover:bg-primary/5'}`}
                             >
                                 {`Select ${plan.name}`}
-                            </button>
+                            </Link>
                             {isRecommended && (
                                 <Link href="/register/agency">
                                     <div

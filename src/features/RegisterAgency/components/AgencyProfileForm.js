@@ -1,9 +1,15 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
+import { useAuth } from '@/context/AuthContext';
 import { SuccessMessage } from './SuccessMessage';
 
 export default function AgencyProfileForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
+  const auth = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -62,8 +68,21 @@ export default function AgencyProfileForm() {
           'Accept ': 'application/json',
         },
       });
-      // response directly contains the JSON body due to axios interceptor returning response.data
-      setSuccessData(response);
+      // Agency created — now auto-login with the admin credentials they just entered.
+      // This way the user lands on checkout already authenticated.
+      if (returnUrl) {
+        const loginResult = await auth.login(formData.email, formData.password);
+        if (!loginResult?.success) {
+          // Login failed after agency creation (edge case) — redirect anyway so they can log in manually
+          router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+        }
+        // auth.login() handles the redirect: it will push to auth_return_url or /tenant/dashboard
+        // Since there is no auth_return_url saved at this point, we push manually.
+        router.push(returnUrl);
+      } else {
+        // Standalone registration — show the success card with the dashboard link
+        setSuccessData(response);
+      }
     } catch (error) {
       if (error.errors) {
         setErrors(error.errors);
@@ -125,15 +144,19 @@ export default function AgencyProfileForm() {
             {errors.name && <span className="text-error text-sm">{errors.name[0]}</span>}
           </div>
           <div className="flex flex-col gap-2">
-            <label className="font-label-caps text-label-caps text-on-surface-variant">CORPORATE EMAIL</label>
+            <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN EMAIL</label>
             <input
               name="email"
               value={formData.email}
               onChange={handleInputChange}
               className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.email ? 'border-error ring-1 ring-error' : ''}`}
-              placeholder="contact@agency.com"
+              placeholder="admin@agency.com"
               type="email"
             />
+            <span className="text-xs text-on-surface-variant flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">info</span>
+              You’ll use this email to log in to your dashboard.
+            </span>
             {errors.email && <span className="text-error text-sm">{errors.email[0]}</span>}
           </div>
           <div className="flex flex-col gap-2">
@@ -159,8 +182,23 @@ export default function AgencyProfileForm() {
               type="url"
             />
           </div>
+        </div>
+
+        {/* Admin Credentials Banner */}
+        <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+          <span className="material-symbols-outlined text-primary text-[20px] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>admin_panel_settings</span>
+          <div>
+            <p className="font-label-caps text-label-caps text-primary mb-0.5">ADMIN LOGIN CREDENTIALS</p>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              The password below will be your <strong>admin account password</strong> used to log in to your agency dashboard. Keep it secure &mdash; this is not visible to other users.
+            </p>
+          </div>
+        </div>
+
+        {/* Password Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
           <div className="flex flex-col gap-2">
-            <label className="font-label-caps text-label-caps text-on-surface-variant">PASSWORD</label>
+            <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN PASSWORD</label>
             <input
               name="password"
               value={formData.password}
@@ -169,6 +207,10 @@ export default function AgencyProfileForm() {
               placeholder="••••••••"
               type="password"
             />
+            <span className="text-xs text-on-surface-variant flex items-center gap-1">
+              <span className="material-symbols-outlined text-[14px]">lock</span>
+              Must be at least 8 characters.
+            </span>
             {errors.password && <span className="text-error text-sm">{errors.password[0]}</span>}
           </div>
           <div className="flex flex-col gap-2">
