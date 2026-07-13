@@ -73,10 +73,11 @@ export const UnauthStep = ({ returnUrl }) => {
                     Log In to My Account
                 </Link>
 
-                {/* Go directly to agency registration with the checkout URL embedded.
+                {/* Go directly to the main registration page. 
                     The form will auto-login after company creation and redirect back here. */}
                 <Link
-                    href={`/register/agency?returnUrl=${encodeURIComponent(returnUrl)}`}
+                    href={`/register?role=agency&returnUrl=${encodeURIComponent(returnUrl)}`}
+                    onClick={saveReturnUrl}
                     id="checkout-register-btn"
                     style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

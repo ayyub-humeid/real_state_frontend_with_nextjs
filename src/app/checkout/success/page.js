@@ -3,22 +3,51 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import api from '@/lib/axios';
 
 export default function CheckoutSuccessPage() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
     const [count, setCount] = useState(8);
+    const [isVerifying, setIsVerifying] = useState(true);
 
-    // Countdown auto-redirect to dashboard
+    // Verify session with the backend on page load
     useEffect(() => {
-        if (count <= 0) return;
+        if (!sessionId) {
+            setIsVerifying(false);
+            return;
+        }
+
+        const verifySession = async () => {
+            try {
+                const response = await api.post('checkout/verify-session', { session_id: sessionId });
+
+                if (response?.success) {
+                    console.log("Session verified successfully");
+                    alert("Session verified successfully");
+                } else {
+                    console.error("Session verification failed", response?.message);
+                }
+            } catch (error) {
+                console.error("Error verifying session", error);
+            } finally {
+                setIsVerifying(false);
+            }
+        };
+
+        verifySession();
+    }, [sessionId]);
+
+    // Countdown auto-redirect to dashboard (wait until verifying is done)
+    useEffect(() => {
+        if (isVerifying || count <= 0) return;
         const timer = setTimeout(() => setCount((c) => c - 1), 1000);
         return () => clearTimeout(timer);
-    }, [count]);
+    }, [count, isVerifying]);
 
     useEffect(() => {
         if (count === 0) {
-            window.location.href = '/tenant/dashboard';
+            window.location.href = 'http://real-estate-system.test/admin/dashboard';
         }
     }, [count]);
 
@@ -101,8 +130,8 @@ export default function CheckoutSuccessPage() {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <Link
-                        href="/tenant/dashboard"
+                    <a
+                        href="http://real-estate-system.test/admin/dashboard"
                         id="success-dashboard-btn"
                         style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -115,7 +144,7 @@ export default function CheckoutSuccessPage() {
                     >
                         <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
                         Go to My Dashboard
-                    </Link>
+                    </a>
                     <Link href="/" style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none' }}>
                         ← Back to Home
                     </Link>

@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import api from '@/lib/axios';
+import { useSearchParams } from 'next/navigation';
 
 const ROLES = [
   { value: 'tenant', label: 'Renter', icon: 'person', desc: 'Looking for a place to rent' },
@@ -10,14 +12,26 @@ const ROLES = [
 ];
 
 export default function RegisterPage() {
-  const { register, loading } = useAuth();
+  const { register, login, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
   const [selectedRole, setSelectedRole] = useState('tenant');
+
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam === 'agency' || roleParam === 'tenant') {
+      setSelectedRole(roleParam);
+    }
+  }, [searchParams]);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    admin_name: '',
     email: '',
+    agency_email: '',
     phone: '',
+    address: '',
     password: '',
     confirmPassword: '',
   });
@@ -29,22 +43,81 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('Please fill in all required fields.');
-      return;
+    setIsSubmitting(true);
+    setError('');
+
+    if (selectedRole === 'tenant') {
+      if (!formData.name || !formData.email || !formData.password) {
+        setError('Please fill in all required fields.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.password.length < 6) {
+        setError('Password must be at least 6 characters.');
+        setIsSubmitting(false);
+        return;
+      }
+      const result = await register(formData.name, formData.email, formData.password, formData.phone);
+      if (!result.success) {
+        setError(result.message || 'Registration failed. Please try again.');
+      }
+    } else {
+      // Agency Flow
+      if (!formData.name || !formData.admin_name || !formData.email || !formData.password) {
+        setError('Please fill in all required fields.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match.');
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.password.length < 8) {
+        setError('Admin password must be at least 8 characters.');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('admin_name', formData.admin_name);
+      payload.append('email', formData.email);
+      if (formData.agency_email) payload.append('agency_email', formData.agency_email);
+      if (formData.phone) payload.append('phone', formData.phone);
+      if (formData.address) payload.append('address', formData.address);
+      payload.append('password', formData.password);
+      payload.append('password_confirmation', formData.confirmPassword);
+      payload.append('with_trial', '0'); // don't create trial subscription here
+      
+      try {
+        const response = await api.post('/agencies', payload, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json',
+          },
+        });
+        
+        // Auto login with the newly created admin credentials
+        const loginResult = await login(formData.email, formData.password);
+        if (!loginResult?.success) {
+          setError(loginResult?.message || 'Account created, but auto-login failed. Please sign in manually.');
+        }
+      } catch (err) {
+        if (err.response?.data?.errors) {
+          const firstError = Object.values(err.response.data.errors)[0][0];
+          setError(firstError);
+        } else {
+          setError(err.message || 'Failed to register agency. Please try again.');
+        }
+      }
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-    const result = await register(formData.name, formData.email, formData.password, formData.phone);
-    if (!result.success) {
-      setError(result.message || 'Registration failed. Please try again.');
-    }
+    setIsSubmitting(false);
   };
 
   const inputStyle = {
@@ -108,9 +181,23 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Full Name */}
+            {selectedRole === 'agency' && (
+              <div className="p-4 rounded-xl text-sm" style={{ background: '#f0fdfa', color: '#0f766e', border: '1px solid #ccfbf1' }}>
+                <div className="flex items-start gap-2">
+                  <span className="material-symbols-outlined mt-0.5" style={{ fontSize: '18px' }}>info</span>
+                  <div>
+                    <p className="font-semibold mb-0.5">Basic Company Setup</p>
+                    <p>Enter your primary company and admin info below. You can complete your full profile (logo, branches, settings) later from your dashboard.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Full Name / Agency Name */}
             <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Full Name *</label>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
+                {selectedRole === 'agency' ? 'Agency Name *' : 'Full Name *'}
+              </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>badge</span>
                 <input
@@ -119,7 +206,7 @@ export default function RegisterPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="John Smith"
+                  placeholder={selectedRole === 'agency' ? "e.g. Skyline Realty Group" : "John Smith"}
                   required
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
                   style={inputStyle}
@@ -129,9 +216,57 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Email */}
+            {/* Agency Email (Agency Only) */}
+            {selectedRole === 'agency' && (
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Agency Email Address *</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>store</span>
+                  <input
+                    id="register-agency-email"
+                    type="email"
+                    name="agency_email"
+                    value={formData.agency_email}
+                    onChange={handleChange}
+                    placeholder="contact@agency.com"
+                    required
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Admin Full Name (Agency Only) */}
+            {selectedRole === 'agency' && (
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Admin Full Name *</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>person</span>
+                  <input
+                    id="register-admin-name"
+                    type="text"
+                    name="admin_name"
+                    value={formData.admin_name}
+                    onChange={handleChange}
+                    placeholder="Jane Doe"
+                    required
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Admin Email */}
             <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Email Address *</label>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
+                {selectedRole === 'agency' ? 'Admin Login Email *' : 'Email Address *'}
+              </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>mail</span>
                 <input
@@ -150,9 +285,11 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Phone */}
+            {/* Admin Phone */}
             <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Phone Number</label>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
+                {selectedRole === 'agency' ? 'Admin Phone Number *' : 'Phone Number'}
+              </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>phone</span>
                 <input
@@ -162,6 +299,7 @@ export default function RegisterPage() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+1 (555) 000-0000"
+                  required={selectedRole === 'agency'}
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
                   style={inputStyle}
                   onFocus={(e) => Object.assign(e.target.style, focusStyle)}
@@ -170,9 +308,33 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Address (Agency Only) */}
+            {selectedRole === 'agency' && (
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Office Address</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>location_on</span>
+                  <input
+                    id="register-address"
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="Street, City, State"
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Password */}
             <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Password *</label>
+              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
+                {selectedRole === 'agency' ? 'Admin Password *' : 'Password *'}
+              </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>lock</span>
                 <input
@@ -181,7 +343,7 @@ export default function RegisterPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Min. 6 characters"
+                  placeholder={selectedRole === 'agency' ? "Min. 8 characters" : "Min. 6 characters"}
                   required
                   className="w-full pl-12 pr-12 py-3.5 rounded-xl text-sm outline-none transition-all"
                   style={inputStyle}
@@ -219,15 +381,15 @@ export default function RegisterPage() {
             <button
               id="register-submit"
               type="submit"
-              disabled={loading}
+              disabled={authLoading || isSubmitting}
               className="w-full py-4 rounded-xl text-sm font-bold tracking-wide transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{
-                background: loading ? '#94a3b8' : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                background: (authLoading || isSubmitting) ? '#94a3b8' : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
                 color: '#fff',
-                boxShadow: loading ? 'none' : '0 4px 20px rgba(79,70,229,0.35)',
+                boxShadow: (authLoading || isSubmitting) ? 'none' : '0 4px 20px rgba(79,70,229,0.35)',
               }}
             >
-              {loading ? (
+              {(authLoading || isSubmitting) ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   Creating Account…
