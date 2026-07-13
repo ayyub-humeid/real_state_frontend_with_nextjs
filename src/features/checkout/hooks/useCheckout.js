@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { createCheckoutSession } from '../api';
+import { createCheckoutSession, createLeaseCheckoutSession } from '../api';
 
 /**
  * useCheckout — handles calling the Laravel checkout API
@@ -28,5 +28,23 @@ export const useCheckout = () => {
         }
     };
 
-    return { redirectToStripe, loading, error };
+    const redirectToLeaseStripe = async (unitId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await createLeaseCheckoutSession(unitId);
+            if (response?.success && response?.url) {
+                window.location.href = response.url;
+            } else {
+                setError(response?.message || 'Could not create lease checkout session. Please try again.');
+            }
+        } catch (err) {
+            setError(err?.message || 'Something went wrong. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { redirectToStripe, redirectToLeaseStripe, loading, error };
 };
+

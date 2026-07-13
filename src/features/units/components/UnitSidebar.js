@@ -1,7 +1,11 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function UnitSidebar({ unit }) {
     if (!unit) return null;
+
+    const agencyName = unit.property?.company?.name || 'Property Manager';
+    const agencyLogo = unit.property?.company?.logo_url || null;
 
     return (
         <div className="lg:col-span-4 relative">
@@ -21,9 +25,14 @@ export default function UnitSidebar({ unit }) {
                 </div>
 
                 {/* CTA */}
-                <button className="w-full bg-surface-tint hover:bg-primary text-on-primary text-[14px] font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2">
+                <Link
+                    href={`/checkout/unit/${unit.id}`}
+                    id="apply-for-lease-btn"
+                    className="w-full bg-surface-tint hover:bg-primary text-on-primary text-[14px] font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                >
+                    <span className="material-symbols-outlined text-[18px]">home_work</span>
                     Apply for Lease
-                </button>
+                </Link>
                 <button className="w-full bg-surface-container-low hover:bg-surface-container text-on-surface text-[14px] font-semibold py-3 px-4 rounded-lg transition-colors border border-outline-variant/30">
                     Contact Agent
                 </button>
@@ -37,17 +46,17 @@ export default function UnitSidebar({ unit }) {
                     </h4>
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant/30">
-                            <img 
-                                alt="Agency Logo" 
-                                className="w-full h-full object-cover" 
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6TBS1NcwsF2AblSOaWSZSXnegkmUUpXp4_1_GV0q8NC_LlaJ0XJcpRoKjrpkTyRIEL-kNR2rtmIysuc6nvX7eYu4N1vQB2s4ok0dr1qtEjv4J-B9DOZaV_tDpHwXNDaBwm4l4xoSyXj4ztbcj69jAHcZnqJ26Cn0AkWuGpf1VjUVGuILY-c3Mg4X5E_w2cioXJDCiNITKp6BcOAfHkSFmJOGCc5_yLjRqGARuN2NvWLGOg5teSb1gBhjq-TkeePfBpRuAjn8u6Q" 
-                            />
+                            {agencyLogo ? (
+                                <img alt="Agency Logo" className="w-full h-full object-cover" src={agencyLogo} />
+                            ) : (
+                                <span className="material-symbols-outlined text-outline text-[24px]">business</span>
+                            )}
                         </div>
                         <div>
-                            <h5 className="text-[16px] font-semibold text-on-surface">Horizon Heights</h5>
+                            <h5 className="text-[16px] font-semibold text-on-surface">{agencyName}</h5>
                             <p className="text-[12px] font-semibold text-on-surface-variant flex items-center gap-1 mt-1">
                                 <span className="material-symbols-outlined text-[14px]">star</span>
-                                4.9 (124 Reviews)
+                                {unit.average_rating ? `${unit.average_rating} (${unit.reviews_count} Reviews)` : 'No ratings yet'}
                             </p>
                         </div>
                     </div>
@@ -57,3 +66,4 @@ export default function UnitSidebar({ unit }) {
         </div>
     );
 }
+
