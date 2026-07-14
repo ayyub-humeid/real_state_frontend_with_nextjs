@@ -47,6 +47,14 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+
+
+
+
+
+
+
+
       // Verify the token is still valid with the backend
       try {
         const response = await api.get('auth/me');

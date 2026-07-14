@@ -97,7 +97,7 @@ export default function CheckoutSuccessPage() {
     // Countdown auto-redirect (wait until verifying is done)
     useEffect(() => {
         if (isVerifying || count <= 0) return;
-        const timer = setTimeout(() => setCount((c) => c - 1), 1000);
+        const timer = setTimeout(() => setCount((c) => c - 1), 10000);
         return () => clearTimeout(timer);
     }, [count, isVerifying]);
 
