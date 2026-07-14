@@ -8,7 +8,9 @@ import api from '@/lib/axios';
 export default function CheckoutSuccessPage() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
-    const type = searchParams.get('type') || 'subscription';
+    const type = searchParams.get('type') || 'subscription'; // 'payment' | 'lease' | 'subscription'
+    const isLease = type === 'lease';
+    const isPayment = type === 'payment';
 
     const [count, setCount] = useState(8);
     const [isVerifying, setIsVerifying] = useState(true);
@@ -33,7 +35,6 @@ export default function CheckoutSuccessPage() {
 
                 if (response?.success) {
                     console.log("Session verified successfully");
-                    alert("Session verified successfully");
                 } else {
                     console.error("Session verification failed", response?.message);
                 }
@@ -47,9 +48,12 @@ export default function CheckoutSuccessPage() {
         verifySession();
     }, [sessionId, type]);
 
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
+
     const getPageContent = () => {
         if (type === 'payment') {
             return {
+                icon: 'check_circle',
                 title: 'Payment Successful!',
                 description: 'Your rent payment has been processed successfully.',
                 redirectUrl: '/tenant/payments',
@@ -62,20 +66,23 @@ export default function CheckoutSuccessPage() {
         }
         if (type === 'lease') {
             return {
-                title: 'Application Successful!',
-                description: 'Your lease application and initial payment were successful.',
+                icon: 'home_work',
+                title: 'Lease Request Submitted!',
+                description: "Your first month's rent has been paid. Your lease application is now pending review by the property manager.",
                 redirectUrl: '/tenant/dashboard',
-                redirectText: 'Go to Dashboard',
+                redirectText: 'Go to Tenant Dashboard',
                 steps: [
-                    { icon: 'description', text: 'Lease application submitted' },
-                    { icon: 'hourglass_empty', text: 'Awaiting landlord approval' },
+                    { icon: 'mail', text: 'Confirmation email sent to your inbox' },
+                    { icon: 'home_work', text: 'Your lease request is now pending agency review' },
+                    { icon: 'support_agent', text: 'The agency will contact you to finalize the agreement' },
                 ]
             };
         }
         return {
+            icon: 'check_circle',
             title: 'Subscription Active!',
             description: 'Your subscription is now active. Welcome aboard!\nYou now have full access to your plan features.',
-            redirectUrl: 'http://real-estate-system.test/admin/dashboard',
+            redirectUrl: `${adminUrl}/dashboard`,
             redirectText: 'Go to Admin Dashboard',
             steps: [
                 { icon: 'mail', text: 'Confirmation email sent to your inbox' },
@@ -87,7 +94,7 @@ export default function CheckoutSuccessPage() {
 
     const content = getPageContent();
 
-    // Countdown auto-redirect to dashboard (wait until verifying is done)
+    // Countdown auto-redirect (wait until verifying is done)
     useEffect(() => {
         if (isVerifying || count <= 0) return;
         const timer = setTimeout(() => setCount((c) => c - 1), 1000);
@@ -130,7 +137,7 @@ export default function CheckoutSuccessPage() {
                     <span className="material-symbols-outlined" style={{
                         fontSize: 52, color: '#fff', fontVariationSettings: "'FILL' 1"
                     }}>
-                        check_circle
+                        {content.icon}
                     </span>
                 </div>
 
@@ -193,6 +200,7 @@ export default function CheckoutSuccessPage() {
                     ) : (
                         <Link
                             href={content.redirectUrl}
+                            id="success-dashboard-btn"
                             style={{
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                                 padding: '0.9rem',
@@ -206,11 +214,9 @@ export default function CheckoutSuccessPage() {
                             {content.redirectText}
                         </Link>
                     )}
-                    {type !== 'lease' && type !== 'payment' && (
-                        <Link href="/tenant/dashboard" style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none', marginTop: '0.5rem' }}>
-                            ← Back to Home
-                        </Link>
-                    )}
+                    <Link href="/" style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none', marginTop: '0.5rem' }}>
+                        ← Back to Home
+                    </Link>
                 </div>
 
                 {/* Auto-redirect countdown */}
