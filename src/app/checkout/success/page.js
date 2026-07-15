@@ -8,8 +8,9 @@ import api from '@/lib/axios';
 export default function CheckoutSuccessPage() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
-    const paymentType = searchParams.get('type'); // 'lease' or undefined (subscription)
-    const isLease = paymentType === 'lease';
+    const type = searchParams.get('type') || 'subscription'; // 'payment' | 'lease' | 'subscription'
+    const isLease = type === 'lease';
+    const isPayment = type === 'payment';
 
     const [count, setCount] = useState(8);
     const [isVerifying, setIsVerifying] = useState(true);
@@ -23,7 +24,14 @@ export default function CheckoutSuccessPage() {
 
         const verifySession = async () => {
             try {
-                const response = await api.post('checkout/verify-session', { session_id: sessionId });
+                let response;
+                if (type === 'payment') {
+                    // Endpoint for rent payments
+                    response = await api.post('checkout/verify-payment-session', { session_id: sessionId });
+                } else {
+                    // Endpoint for leases and subscriptions
+                    response = await api.post('checkout/verify-session', { session_id: sessionId });
+                }
 
                 if (response?.success) {
                     console.log("Session verified successfully");
@@ -38,44 +46,66 @@ export default function CheckoutSuccessPage() {
         };
 
         verifySession();
-    }, [sessionId]);
+    }, [sessionId, type]);
+
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
+
+    const getPageContent = () => {
+        if (type === 'payment') {
+            return {
+                icon: 'check_circle',
+                title: 'Payment Successful!',
+                description: 'Your rent payment has been processed successfully.',
+                redirectUrl: '/tenant/payments',
+                redirectText: 'Go to My Payments',
+                steps: [
+                    { icon: 'receipt_long', text: 'Receipt sent to your email' },
+                    { icon: 'check_circle', text: 'Your balance has been updated' },
+                ]
+            };
+        }
+        if (type === 'lease') {
+            return {
+                icon: 'home_work',
+                title: 'Lease Request Submitted!',
+                description: "Your first month's rent has been paid. Your lease application is now pending review by the property manager.",
+                redirectUrl: '/tenant/dashboard',
+                redirectText: 'Go to Tenant Dashboard',
+                steps: [
+                    { icon: 'mail', text: 'Confirmation email sent to your inbox' },
+                    { icon: 'home_work', text: 'Your lease request is now pending agency review' },
+                    { icon: 'support_agent', text: 'The agency will contact you to finalize the agreement' },
+                ]
+            };
+        }
+        return {
+            icon: 'check_circle',
+            title: 'Subscription Active!',
+            description: 'Your subscription is now active. Welcome aboard!\nYou now have full access to your plan features.',
+            redirectUrl: `${adminUrl}/dashboard`,
+            redirectText: 'Go to Admin Dashboard',
+            steps: [
+                { icon: 'mail', text: 'Confirmation email sent to your inbox' },
+                { icon: 'dashboard', text: 'Your dashboard is now fully unlocked' },
+                { icon: 'support_agent', text: 'Our team is available 24/7 for support' },
+            ]
+        };
+    };
+
+    const content = getPageContent();
 
     // Countdown auto-redirect (wait until verifying is done)
     useEffect(() => {
         if (isVerifying || count <= 0) return;
-        const timer = setTimeout(() => setCount((c) => c - 1), 1000);
+        const timer = setTimeout(() => setCount((c) => c - 1), 10000);
         return () => clearTimeout(timer);
     }, [count, isVerifying]);
 
     useEffect(() => {
         if (count === 0) {
-            const adminUrl = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
-            window.location.href = isLease
-                ? '/tenant/dashboard'
-                : `${adminUrl}/dashboard`;
+            window.location.href = content.redirectUrl;
         }
-    }, [count, isLease]);
-
-    const title = isLease ? 'Lease Request Submitted!' : 'Payment Successful!';
-    const subtitle = isLease
-        ? "Your first month's rent has been paid. Your lease application is now pending review by the property manager."
-        : 'Your subscription is now active. Welcome aboard! You now have full access to your plan features.';
-
-    const nextSteps = isLease
-        ? [
-            { icon: 'mail', text: 'Confirmation email sent to your inbox' },
-            { icon: 'home_work', text: 'Your lease request is now pending agency review' },
-            { icon: 'support_agent', text: 'The agency will contact you to finalize the agreement' },
-        ]
-        : [
-            { icon: 'mail', text: 'Confirmation email sent to your inbox' },
-            { icon: 'dashboard', text: 'Your dashboard is now fully unlocked' },
-            { icon: 'support_agent', text: 'Our team is available 24/7 for support' },
-        ];
-
-    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
-    const dashboardHref = isLease ? '/tenant/dashboard' : `${adminUrl}/dashboard`;
-    const dashboardLabel = isLease ? 'Go to Tenant Dashboard' : 'Go to My Dashboard';
+    }, [count, content.redirectUrl]);
 
     return (
         <div style={{
@@ -107,15 +137,15 @@ export default function CheckoutSuccessPage() {
                     <span className="material-symbols-outlined" style={{
                         fontSize: 52, color: '#fff', fontVariationSettings: "'FILL' 1"
                     }}>
-                        {isLease ? 'home_work' : 'check_circle'}
+                        {content.icon}
                     </span>
                 </div>
 
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#064e3b', marginBottom: 8 }}>
-                    {title}
+                    {content.title}
                 </h1>
-                <p style={{ color: '#065f46', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-                    {subtitle}
+                <p style={{ color: '#065f46', fontSize: '1rem', lineHeight: 1.6, marginBottom: '1.5rem', whiteSpace: 'pre-line' }}>
+                    {content.description}
                 </p>
 
                 {sessionId && (
@@ -139,7 +169,7 @@ export default function CheckoutSuccessPage() {
                     <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#374151', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                         What happens next
                     </p>
-                    {nextSteps.map((item) => (
+                    {content.steps.map((item) => (
                         <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                             <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#10b981', fontVariationSettings: "'FILL' 1" }}>
                                 {item.icon}
@@ -151,29 +181,47 @@ export default function CheckoutSuccessPage() {
 
                 {/* Actions */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <a
-                        href={dashboardHref}
-                        id="success-dashboard-btn"
-                        style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                            padding: '0.9rem',
-                            borderRadius: 12,
-                            background: 'linear-gradient(135deg, #10b981, #059669)',
-                            color: '#fff', fontWeight: 700, textDecoration: 'none',
-                            boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
-                        }}
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>dashboard</span>
-                        {dashboardLabel}
-                    </a>
-                    <Link href="/" style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none' }}>
+                    {content.redirectUrl.startsWith('http') ? (
+                        <a
+                            href={content.redirectUrl}
+                            id="success-dashboard-btn"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                padding: '0.9rem',
+                                borderRadius: 12,
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: '#fff', fontWeight: 700, textDecoration: 'none',
+                                boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_forward</span>
+                            {content.redirectText}
+                        </a>
+                    ) : (
+                        <Link
+                            href={content.redirectUrl}
+                            id="success-dashboard-btn"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                padding: '0.9rem',
+                                borderRadius: 12,
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                color: '#fff', fontWeight: 700, textDecoration: 'none',
+                                boxShadow: '0 4px 16px rgba(16,185,129,0.3)',
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>arrow_forward</span>
+                            {content.redirectText}
+                        </Link>
+                    )}
+                    <Link href="/" style={{ fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none', marginTop: '0.5rem' }}>
                         ← Back to Home
                     </Link>
                 </div>
 
                 {/* Auto-redirect countdown */}
                 <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: '#9ca3af' }}>
-                    Redirecting to {isLease ? 'tenant dashboard' : 'dashboard'} in {count}s…
+                    Redirecting automatically in {count}s…
                 </p>
             </div>
 

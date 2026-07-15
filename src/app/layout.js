@@ -3,6 +3,8 @@ import "material-symbols";
 import "./globals.css";
 import LayoutShell from "@/components/LayoutShell";
 import { AuthProvider } from "@/context/AuthContext";
+import { BroadcastProvider } from "@/context/BroadcastContext";
+import { AppToaster } from '@/components/FeedbackToaster';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,10 +29,13 @@ export default function RootLayout({ children }) {
     >
       <body className="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
         <AuthProvider>
-          {/* LayoutShell controls Navbar/Footer visibility per route */}
-          <LayoutShell>
-            {children}
-          </LayoutShell>
+          <BroadcastProvider>
+            {/* LayoutShell controls Navbar/Footer visibility per route */}
+            <LayoutShell>
+              {children}
+            </LayoutShell>
+            <AppToaster />
+          </BroadcastProvider>
         </AuthProvider>
       </body>
     </html>

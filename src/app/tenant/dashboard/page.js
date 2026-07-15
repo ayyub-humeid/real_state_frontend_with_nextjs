@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { StatCard, NextPaymentCard, QuickActions, PaymentsTable, RentalRequestsList, MaintenanceRequestModal } from '@/features/dashboard';
@@ -111,7 +112,7 @@ export default function TenantDashboardPage() {
         >
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #f8fafc' }}>
             <h2 className="font-bold" style={{ color: '#0f172a' }}>Payment History</h2>
-            <button className="text-xs font-semibold hover:underline" style={{ color: '#4f46e5' }}>View all</button>
+            <Link href="/tenant/payments" className="text-xs font-semibold hover:underline" style={{ color: '#4f46e5' }}>View all</Link>
           </div>
           <div className="px-2">
             {dataLoading ? (
@@ -131,7 +132,7 @@ export default function TenantDashboardPage() {
         >
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #f8fafc' }}>
             <h2 className="font-bold" style={{ color: '#0f172a' }}>Rental Requests</h2>
-            <button className="text-xs font-semibold hover:underline" style={{ color: '#4f46e5' }}>View all</button>
+            <Link href="/tenant/rental-requests" className="text-xs font-semibold hover:underline" style={{ color: '#4f46e5' }}>View all</Link>
           </div>
           <div className="p-4">
             {dataLoading ? (
