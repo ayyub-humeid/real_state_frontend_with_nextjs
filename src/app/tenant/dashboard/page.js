@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { StatCard, NextPaymentCard, QuickActions, PaymentsTable, RentalRequestsList, MaintenanceRequestModal, LeaseDetailModal } from '@/features/dashboard';
 
 export default function TenantDashboardPage() {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [dashboardData, setDashboardData] = useState(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [dataError, setDataError] = useState('');
@@ -117,6 +119,7 @@ export default function TenantDashboardPage() {
         <QuickActions
           onOpenMaintenance={() => setShowMaintenanceModal(true)}
           onOpenLease={primaryLease ? () => openLeaseModal(primaryLease.id) : null}
+          onOpenPaymentHistory={() => router.push('/tenant/payments')}
         />
       </section>
 
@@ -141,7 +144,8 @@ export default function TenantDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Payments Table */}
         <section
-          className="rounded-2xl overflow-hidden"
+          id="payment-history-section"
+          className="rounded-2xl overflow-hidden scroll-mt-24"
           style={{ background: '#fff', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
         >
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #f8fafc' }}>
@@ -183,7 +187,8 @@ export default function TenantDashboardPage() {
       {/* Active Leases */}
       {leases.length > 0 && (
         <section
-          className="rounded-2xl"
+          id="my-properties-section"
+          className="rounded-2xl scroll-mt-24"
           style={{ background: '#fff', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
         >
           <div className="px-6 py-4" style={{ borderBottom: '1px solid #f8fafc' }}>
