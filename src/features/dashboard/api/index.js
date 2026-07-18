@@ -71,5 +71,32 @@ export const dashboardApi = {
       console.error('Error fetching maintenance requests:', error);
       throw error;
     }
+  },
+  fetchNotifications: async () => {
+    try {
+      const response = await api.get('tenant/notifications');
+      return response;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+  },
+  markAllNotificationsAsRead: async () => {
+    try {
+      const response = await api.post('tenant/notifications/mark-as-read');
+      return response;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
+  },
+  markNotificationAsRead: async (id) => {
+    try {
+      const response = await api.post(`tenant/notifications/${id}/mark-as-read`);
+      return response;
+    } catch (error) {
+      console.error(`Error marking notification ${id} as read:`, error);
+      throw error;
+    }
   }
 };

@@ -1,16 +1,67 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import Echo from 'laravel-echo';
 import windowPusher from 'pusher-js';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
+import api from '@/lib/axios';
 
 const BroadcastContext = createContext(null);
 
 export const BroadcastProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
   const [echoInstance, setEchoInstance] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const fetchNotifications = useCallback(async () => {
+    if (!isAuthenticated) return;
+    try {
+      setLoading(true);
+      const res = await api.get('tenant/notifications');
+      if (res?.success) {
+        setNotifications(res.data || []);
+        setUnreadCount(res.unread_count || 0);
+      }
+    } catch (e) {
+      console.error('Failed to load notifications:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
+
+  const markAsRead = useCallback(async (id = null) => {
+    try {
+      if (id) {
+        setNotifications(prev =>
+          prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        await api.post(`tenant/notifications/${id}/mark-as-read`);
+      } else {
+        setNotifications(prev =>
+          prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
+        );
+        setUnreadCount(0);
+        await api.post('tenant/notifications/mark-as-read');
+      }
+    } catch (e) {
+      console.error('Failed to mark notification(s) as read:', e);
+      // Re-fetch to sync if failed
+      fetchNotifications();
+    }
+  }, [fetchNotifications]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications();
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated, fetchNotifications]);
 
   useEffect(() => {
     // Only connect if the user is authenticated and we're in the browser
@@ -49,12 +100,26 @@ export const BroadcastProvider = ({ children }) => {
       channel.notification((notification) => {
         console.log('[Broadcast] Notification Received:', notification);
 
+        // Standardize structure to match database schema format
+        const newNotif = {
+          id: notification.id || Math.random().toString(),
+          type: notification.type || 'App\\Notifications\\Generic',
+          title: notification.title || 'New Notification',
+          message: notification.message || notification.body || 'You have a new update.',
+          url: notification.url || null,
+          read_at: null,
+          created_at: 'Just now',
+        };
+
+        setNotifications(prev => [newNotif, ...prev.slice(0, 19)]);
+        setUnreadCount(prev => prev + 1);
+
         // Show modern toast using sonner
-        toast(notification.title || 'New Notification', {
-          description: notification.message || notification.body || 'You have a new update.',
-          action: notification.url ? {
+        toast(newNotif.title, {
+          description: newNotif.message,
+          action: newNotif.url ? {
             label: 'View',
-            onClick: () => window.location.href = notification.url,
+            onClick: () => window.location.href = newNotif.url,
           } : undefined,
           duration: 5000,
         });
@@ -82,7 +147,16 @@ export const BroadcastProvider = ({ children }) => {
   }, [isAuthenticated, user]);
 
   return (
-    <BroadcastContext.Provider value={{ echo: echoInstance }}>
+    <BroadcastContext.Provider
+      value={{
+        echo: echoInstance,
+        notifications,
+        unreadCount,
+        loading,
+        fetchNotifications,
+        markAsRead
+      }}
+    >
       {children}
     </BroadcastContext.Provider>
   );
@@ -91,3 +165,4 @@ export const BroadcastProvider = ({ children }) => {
 export const useBroadcast = () => {
   return useContext(BroadcastContext);
 };
+
