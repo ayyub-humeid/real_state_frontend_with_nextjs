@@ -1,11 +1,11 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
 import { useAuth } from '@/context/AuthContext';
 import { SuccessMessage } from './SuccessMessage';
 
-export default function AgencyProfileForm() {
+function AgencyProfileFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
@@ -254,5 +254,13 @@ export default function AgencyProfileForm() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function AgencyProfileForm() {
+  return (
+    <Suspense fallback={<div>Loading form...</div>}>
+      <AgencyProfileFormContent />
+    </Suspense>
   );
 }
