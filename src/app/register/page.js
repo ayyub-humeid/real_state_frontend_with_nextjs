@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/axios';
@@ -11,7 +11,7 @@ const ROLES = [
   { value: 'agency', label: 'Agency', icon: 'business', desc: 'Running a real estate agency' },
 ];
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const { register, login, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const [selectedRole, setSelectedRole] = useState('tenant');
@@ -492,5 +492,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegisterPageContent />
+    </Suspense>
   );
 }

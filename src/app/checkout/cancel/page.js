@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function CheckoutCancelPage() {
+function CheckoutCancelContent() {
     const searchParams = useSearchParams();
     // The plan slug can be passed as ?plan=starter so we can retry
     const planSlug = searchParams.get('plan');
@@ -115,5 +116,17 @@ export default function CheckoutCancelPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function CheckoutCancelPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p>Loading...</p>
+            </div>
+        }>
+            <CheckoutCancelContent />
+        </Suspense>
     );
 }

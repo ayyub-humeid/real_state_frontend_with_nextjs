@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
     const type = searchParams.get('type') || 'subscription'; // 'payment' | 'lease' | 'subscription'
@@ -232,5 +232,17 @@ export default function CheckoutSuccessPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p>Loading...</p>
+            </div>
+        }>
+            <CheckoutSuccessContent />
+        </Suspense>
     );
 }
