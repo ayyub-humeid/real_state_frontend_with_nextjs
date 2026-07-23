@@ -11,9 +11,10 @@ export default function UnitDetails({ unit }) {
     if (!unit) return null;
 
     const property = unit.property || {};
-    const address = property.address || "Address not available";
+    const location = property.location || {};
+    const address = location.full_path || property.address || "Address not available";
     const title = property.name ? `${property.name} - ${unit.unit_number}` : `Unit ${unit.unit_number}`;
-    const description = property.description || "No description available for this unit.";
+    const description = unit.description || property.description || "No description available for this unit.";
 
     // In a real app we'd map features dynamically from unit.features
     const featuresList = unit.features?.length > 0 ? unit.features : [
@@ -111,13 +112,31 @@ export default function UnitDetails({ unit }) {
                                 {feature.icon || "check_circle"}
                             </span>
                             <span className="text-[16px] text-on-surface">
-                                {feature.name || feature.label} 
+                                {feature.name || feature.label}
                                 {feature.value && feature.value !== 'true' ? ` : ${feature.value}` : ''}
                             </span>
                         </div>
                     ))}
                 </div>
             </div>
+
+            {/* Location Map */}
+            {location.latitude && location.longitude && (
+                <div>
+                    <h3 className="text-[24px] font-semibold text-on-surface mb-6">Location</h3>
+                    <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-outline-variant/50 shadow-sm">
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            allowFullScreen
+                            referrerPolicy="no-referrer-when-downgrade"
+                            src={`https://maps.google.com/maps?q=${location.latitude},${location.longitude}&z=15&output=embed`}
+                        ></iframe>
+                    </div>
+                </div>
+            )}
 
             {/* Rating Section */}
             <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/50">
@@ -133,7 +152,7 @@ export default function UnitDetails({ unit }) {
                             {submitError}
                         </div>
                     )}
-                    
+
                     <div>
                         <label className="block text-sm font-medium text-on-surface-variant mb-2">Rating</label>
                         <div className="flex gap-1">

@@ -44,23 +44,23 @@ export default function LoginPage() {
     <div className="min-h-screen flex" style={{ paddingTop: 0, marginTop: 0 }}>
       {/* ── Left Panel: Luxury Visual ─────────────────────────────────── */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12"
+        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 lg:sticky lg:top-0 lg:h-screen overflow-y-auto"
         style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 70%, #4338ca 100%)',
         }}
       >
         {/* Decorative orbs */}
         <div
-          className="absolute top-20 right-20 w-72 h-72 rounded-full opacity-20"
+          className="absolute top-20 right-20 w-72 h-72 rounded-full opacity-20 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)', filter: 'blur(40px)' }}
         />
         <div
-          className="absolute bottom-32 left-10 w-56 h-56 rounded-full opacity-15"
+          className="absolute bottom-32 left-10 w-56 h-56 rounded-full opacity-15 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', filter: 'blur(30px)' }}
         />
 
         {/* Brand */}
-        <div>
+        <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)' }}>
               <span className="material-symbols-outlined text-white" style={{ fontSize: '22px' }}>apartment</span>
@@ -70,7 +70,7 @@ export default function LoginPage() {
         </div>
 
         {/* Center quote */}
-        <div className="space-y-8">
+        <div className="relative z-10 space-y-8 my-auto py-8">
           <div>
             <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase mb-6"
@@ -110,7 +110,7 @@ export default function LoginPage() {
 
         {/* Bottom quote */}
         <div
-          className="rounded-2xl p-6"
+          className="relative z-10 rounded-2xl p-6 mt-auto"
           style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)' }}
         >
           <p className="text-white text-sm leading-relaxed italic mb-4">

@@ -28,7 +28,7 @@ export default function PropertyCard({ unit }) {
         </div>
 
         <p className="text-on-surface-variant font-body-md line-clamp-2">
-          {unit.property.description}
+          {unit.description || unit.property.description || 'No Description '}
         </p>
 
         <div className="pt-4 border-t border-outline-variant flex gap-6 text-on-surface-variant">

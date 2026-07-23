@@ -1,6 +1,23 @@
+'use client';
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export const Hero = () => {
+    const router = useRouter();
+    const [search, setSearch] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [beds, setBeds] = useState("");
+
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (maxPrice) params.append('max_price', maxPrice);
+        if (beds) params.append('bedrooms', beds);
+        
+        router.push(`/units?${params.toString()}`);
+    };
+
     return (
         <section className="relative min-h-[800px] flex items-center justify-center overflow-hidden px-margin-mobile md:px-margin-desktop py-20">
             <div className="absolute inset-0 z-0">
@@ -21,17 +38,38 @@ export const Hero = () => {
                     <div className="w-full mt-4 glass-dark p-2 rounded-2xl flex flex-col md:flex-row gap-2">
                         <div className="flex-1 flex items-center bg-white/5 rounded-xl px-4 py-3 gap-3">
                             <span className="material-symbols-outlined text-outline" data-icon="location_on">location_on</span>
-                            <input className="bg-transparent border-none text-white focus:ring-0 w-full font-body-md placeholder:text-outline-variant" placeholder="Location" type="text" />
+                            <input 
+                                className="bg-transparent border-none text-white focus:ring-0 w-full font-body-md placeholder:text-outline-variant" 
+                                placeholder="Location" 
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
                         </div>
                         <div className="flex-1 flex items-center bg-white/5 rounded-xl px-4 py-3 gap-3">
                             <span className="material-symbols-outlined text-outline" data-icon="payments">payments</span>
-                            <input className="bg-transparent border-none text-white focus:ring-0 w-full font-body-md placeholder:text-outline-variant" placeholder="Max Price" type="text" />
+                            <input 
+                                className="bg-transparent border-none text-white focus:ring-0 w-full font-body-md placeholder:text-outline-variant" 
+                                placeholder="Max Price" 
+                                type="number"
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(e.target.value)}
+                            />
                         </div>
                         <div className="flex-1 flex items-center bg-white/5 rounded-xl px-4 py-3 gap-3">
                             <span className="material-symbols-outlined text-outline" data-icon="bed">bed</span>
-                            <input className="bg-transparent border-none text-white focus:ring-0 w-full font-body-md placeholder:text-outline-variant" placeholder="Beds" type="text" />
+                            <input 
+                                className="bg-transparent border-none text-white focus:ring-0 w-full font-body-md placeholder:text-outline-variant" 
+                                placeholder="Beds" 
+                                type="number"
+                                value={beds}
+                                onChange={(e) => setBeds(e.target.value)}
+                            />
                         </div>
-                        <button className="bg-primary-container text-on-primary-container px-8 py-3 rounded-xl font-button flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+                        <button 
+                            onClick={handleSearch}
+                            className="bg-primary-container text-on-primary-container px-8 py-3 rounded-xl font-button flex items-center justify-center gap-2 hover:opacity-90 transition-all"
+                        >
                             <span className="material-symbols-outlined" data-icon="search">search</span> Search
                         </button>
                     </div>

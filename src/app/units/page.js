@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     useUnitsList,
     UnitsFilterBar,
@@ -8,14 +9,16 @@ import {
 } from '@/features/units';
 import Pagination from '@/components/Pagination';
 
-export default function UnitsPage() {
+function UnitsPageContent() {
+    const searchParams = useSearchParams();
+    
     const [filters, setFilters] = useState({
-        search: '',
-        type: 'All',
-        min_price: '',
-        max_price: '',
-        bedrooms: 'Any',
-        sort: 'newest_to_oldest',
+        search: searchParams.get('search') || '',
+        type: searchParams.get('type') || 'All',
+        min_price: searchParams.get('min_price') || '',
+        max_price: searchParams.get('max_price') || '',
+        bedrooms: searchParams.get('bedrooms') || 'Any',
+        sort: searchParams.get('sort') || 'newest_to_oldest',
         amenities: []
     });
 
@@ -54,10 +57,10 @@ export default function UnitsPage() {
                     onClick={() => setIsAdvancedFilterOpen(false)}
                 ></div>
             )}
-            <UnitsFilterBar 
-                filters={filters} 
-                onFilterChange={handleFilterChange} 
-                onOpenAdvancedFilter={() => setIsAdvancedFilterOpen(true)} 
+            <UnitsFilterBar
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onOpenAdvancedFilter={() => setIsAdvancedFilterOpen(true)}
             />
             <div className="max-w-container-max mx-auto px-margin-desktop py-12 flex gap-gutter relative z-0">
                 <div className="flex-1 w-full">
@@ -123,5 +126,17 @@ export default function UnitsPage() {
                 onApplyFilters={handleApplyAdvancedFilters}
             />
         </div>
+    );
+}
+
+export default function UnitsPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-background relative flex justify-center items-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        }>
+            <UnitsPageContent />
+        </Suspense>
     );
 }
