@@ -414,23 +414,23 @@ function RegisterPageContent() {
 
       {/* ── Right Panel: Visual ───────────────────────────────────────── */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12"
+        className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 lg:sticky lg:top-0 lg:h-screen overflow-y-auto"
         style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 70%, #4338ca 100%)',
         }}
       >
         {/* Decorative orbs */}
         <div
-          className="absolute top-16 left-12 w-64 h-64 rounded-full opacity-20"
+          className="absolute top-16 left-12 w-64 h-64 rounded-full opacity-20 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)', filter: 'blur(40px)' }}
         />
         <div
-          className="absolute bottom-24 right-8 w-48 h-48 rounded-full opacity-15"
+          className="absolute bottom-24 right-8 w-48 h-48 rounded-full opacity-15 pointer-events-none"
           style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', filter: 'blur(30px)' }}
         />
 
         {/* Brand */}
-        <div>
+        <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)' }}>
               <span className="material-symbols-outlined text-white" style={{ fontSize: '22px' }}>apartment</span>
@@ -440,7 +440,7 @@ function RegisterPageContent() {
         </div>
 
         {/* Center visual */}
-        <div className="space-y-6">
+        <div className="relative z-10 space-y-6 my-auto py-8">
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase"
             style={{ background: 'rgba(255,255,255,0.1)', color: '#a5b4fc', backdropFilter: 'blur(8px)', border: '1px solid rgba(165,180,252,0.2)' }}
@@ -480,7 +480,7 @@ function RegisterPageContent() {
 
         {/* Trusted logos strip */}
         <div
-          className="rounded-2xl p-5"
+          className="relative z-10 rounded-2xl p-5 mt-auto"
           style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)' }}
         >
           <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#64748b' }}>Trusted by</p>
