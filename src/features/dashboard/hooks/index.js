@@ -3,3 +3,5 @@ export * from './usePayment';
 export * from './usePaymentCheckout';
 export * from './useRentalRequests';
 export * from './useMaintenanceRequests';
+export * from './useLeases';
+

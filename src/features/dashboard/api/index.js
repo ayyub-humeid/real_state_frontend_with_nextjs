@@ -98,5 +98,23 @@ export const dashboardApi = {
       console.error(`Error marking notification ${id} as read:`, error);
       throw error;
     }
+  },
+  fetchTenantLeases: async (page = 1) => {
+    try {
+      const response = await api.get(`tenant/leases?page=${page}`);
+      return response;
+    } catch (error) {
+      console.error('Error fetching tenant leases:', error);
+      throw error;
+    }
+  },
+  fetchTenantLease: async (id) => {
+    try {
+      const response = await api.get(`tenant/leases/${id}`);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching tenant lease ${id}:`, error);
+      throw error;
+    }
   }
 };
