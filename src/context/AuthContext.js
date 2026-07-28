@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
         const returnUrl = typeof window !== 'undefined' ? localStorage.getItem('auth_return_url') : null;
 
         if (userData?.role?.toLowerCase() !== 'tenant' && !returnUrl) {
-          const adminPanelUrl = userData?.agency?.dashboard_url || process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
+          const adminPanelUrl = 'http://real-estate-system.test/admin' || userData?.agency?.dashboard_url || process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://real-estate-system.test/admin';
           return {
             success: false,
             message: 'This portal is for tenants only. Please use the company dashboard.',

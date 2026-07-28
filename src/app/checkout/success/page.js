@@ -48,7 +48,7 @@ function CheckoutSuccessContent() {
         verifySession();
     }, [sessionId, type]);
 
-    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
+    const adminUrl = 'http://real-estate-system.test/admin' || process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
 
     const getPageContent = () => {
         if (type === 'payment') {
@@ -82,7 +82,7 @@ function CheckoutSuccessContent() {
             icon: 'check_circle',
             title: 'Subscription Active!',
             description: 'Your subscription is now active. Welcome aboard!\nYou now have full access to your plan features.',
-            redirectUrl: `${adminUrl}/dashboard`,
+            redirectUrl: `${adminUrl}`,
             redirectText: 'Go to Admin Dashboard',
             steps: [
                 { icon: 'mail', text: 'Confirmation email sent to your inbox' },

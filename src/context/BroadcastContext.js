@@ -69,17 +69,24 @@ export const BroadcastProvider = ({ children }) => {
       window.Pusher = windowPusher;
 
       const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/';
+      // const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://real-estate-system.test/api/';
+
       const authEndpoint = apiUrl.replace(/\/$/, '') + '/broadcasting/auth';
 
+      //  broadcaster: 'reverb',
+      //         key: process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'abcdefg',
+      //         wsHost: process.env.NEXT_PUBLIC_REVERB_HOST || 'localhost',
+      //         wsPort: process.env.NEXT_PUBLIC_REVERB_PORT || 8080,
+      //         wssPort: process.env.NEXT_PUBLIC_REVERB_PORT || 8080,
+      //         forceTLS: (process.env.NEXT_PUBLIC_REVERB_SCHEME || 'http') === 'https',
+      //         enabledTransports: ['ws', 'wss'],
+
       const echo = new Echo({
-        broadcaster: 'reverb',
-        key: process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'abcdefg',
-        wsHost: process.env.NEXT_PUBLIC_REVERB_HOST || 'localhost',
-        wsPort: process.env.NEXT_PUBLIC_REVERB_PORT || 8080,
-        wssPort: process.env.NEXT_PUBLIC_REVERB_PORT || 8080,
-        forceTLS: (process.env.NEXT_PUBLIC_REVERB_SCHEME || 'http') === 'https',
-        enabledTransports: ['ws', 'wss'],
+        broadcaster: 'pusher',
+        key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY || '63713722c543bf4c6f08',
+        cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER || 'ap2',
+        forceTLS: true,
         authEndpoint: authEndpoint,
         auth: {
           headers: {
@@ -127,10 +134,10 @@ export const BroadcastProvider = ({ children }) => {
 
       // Add connection state logging to debug connection issues
       echo.connector.pusher.connection.bind('connected', () => {
-        console.log('[Broadcast] Successfully connected to Reverb WebSocket!');
+        console.log('[Broadcast] Successfully connected to Pusher WebSocket!');
       });
       echo.connector.pusher.connection.bind('disconnected', () => {
-        console.log('[Broadcast] Disconnected from Reverb WebSocket.');
+        console.log('[Broadcast] Disconnected from Pusher WebSocket.');
       });
       echo.connector.pusher.connection.bind('error', (err) => {
         console.error('[Broadcast] WebSocket Connection Error:', err);

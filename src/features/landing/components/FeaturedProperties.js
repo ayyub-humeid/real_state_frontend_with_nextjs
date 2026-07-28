@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PropertyCard from "./PropertyCard";
 import { useUnits } from "@/features/units/hooks/useUnits";
 
@@ -34,22 +35,23 @@ export const FeaturedProperties = () => {
           </h2>
         </div>
 
-        <a
+        <Link
           className="text-primary font-button flex items-center gap-2 group"
-          href="#"
+          href="/units"
         >
           View all listings
           <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
             arrow_forward
           </span>
-        </a>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-        {units.slice(0, 3).map((unit) => (
-          <PropertyCard key={unit.id} unit={unit} />
+        {Array.isArray(units) && units.slice(0, 3).map((unit) => (
+          <PropertyCard key={unit.id || unit._id || unit.unit_number} unit={unit} />
         ))}
       </div>
     </section>
   );
 };
+

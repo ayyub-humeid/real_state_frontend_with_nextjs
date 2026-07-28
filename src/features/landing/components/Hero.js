@@ -31,7 +31,7 @@ export const Hero = () => {
                         <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">The unified platform for property managers and residents. Streamline operations and enhance living experiences through intelligent automation.</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                        <Link className="hover:cursor-pointer bg-primary text-on-primary px-10 py-4 rounded-xl font-button text-button shadow-lg shadow-primary/20 hover:translate-y-[-2px] transition-all" href={'units'} >Explore Properties</Link>
+                        <Link className="hover:cursor-pointer bg-primary text-on-primary px-10 py-4 rounded-xl font-button text-button shadow-lg shadow-primary/20 hover:translate-y-[-2px] transition-all" href="/units" >Explore Properties</Link>
                         <button className="hover:cursor-pointer border-2 border-outline-variant text-on-surface px-10 py-4 rounded-xl font-button text-button hover:bg-surface-container-low transition-all">Software for Managers</button>
                     </div>
                     {/* Integrated Search Bar */}

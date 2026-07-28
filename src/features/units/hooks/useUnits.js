@@ -7,13 +7,22 @@ export const useUnits = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchUnitsData = async() => {
+        const fetchUnitsData = async () => {
             try {
                 setLoading(true);
                 setError(null);
                 const response = await UnitsApi.getFeatured();
-                setUnits(response.data || response);
-                console.log(response);
+                
+                let fetchedUnits = [];
+                if (Array.isArray(response)) {
+                    fetchedUnits = response;
+                } else if (Array.isArray(response?.data)) {
+                    fetchedUnits = response.data;
+                } else if (Array.isArray(response?.data?.data)) {
+                    fetchedUnits = response.data.data;
+                }
+                
+                setUnits(fetchedUnits);
             } catch (err) {
                 setError(err.message || 'Failed to fetch units');
             } finally {
@@ -24,6 +33,5 @@ export const useUnits = () => {
         fetchUnitsData();
     }, []);
 
-
     return { units, loading, error };
-};
+};
