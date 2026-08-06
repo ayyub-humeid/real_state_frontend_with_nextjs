@@ -19,14 +19,6 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "EstateSync Pro",
   description: "Premium Real Estate Management Platform",
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon.png", type: "image/png" },
-    ],
-    shortcut: "/favicon.png",
-    apple: "/favicon.png",
-  },
 };
 
 export default function RootLayout({ children }) {
