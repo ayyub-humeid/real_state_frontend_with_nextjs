@@ -70,7 +70,7 @@ export const BroadcastProvider = ({ children }) => {
 
       const token = localStorage.getItem('token');
       // const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/';
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://real-estate-system.test/api/';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/';
 
       const authEndpoint = apiUrl.replace(/\/$/, '') + '/broadcasting/auth';
 
@@ -84,7 +84,7 @@ export const BroadcastProvider = ({ children }) => {
 
       const echo = new Echo({
         broadcaster: 'pusher',
-        key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY || '63713722c543bf4c6f08',
+        key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
         cluster: process.env.NEXT_PUBLIC_PUSHER_APP_CLUSTER || 'ap2',
         forceTLS: true,
         authEndpoint: authEndpoint,

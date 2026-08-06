@@ -48,7 +48,7 @@ function CheckoutSuccessContent() {
         verifySession();
     }, [sessionId, type]);
 
-    const adminUrl = 'http://real-estate-system.test/admin' || process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
+    const adminUrl = process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin';
 
     const getPageContent = () => {
         if (type === 'payment') {
