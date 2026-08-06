@@ -26,7 +26,6 @@ export default function Navbar() {
 
       <nav className="hidden md:flex items-center gap-8">
         <Link className={getLinkClass('/')} href="/">Marketplace</Link>
-        <a className={getLinkClass('/map-explorer')} href="#">Map Explorer</a>
         <Link className={getLinkClass('/agencies')} href="/agencies">Agencies</Link>
         <Link className={getLinkClass('/contact')} href="/contact">Contact</Link>
         <Link className={getLinkClass('/about')} href="/about">About</Link>
