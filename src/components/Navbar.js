@@ -29,10 +29,20 @@ export default function Navbar() {
         <Link className={getLinkClass('/agencies')} href="/agencies">Agencies</Link>
         <Link className={getLinkClass('/contact')} href="/contact">Contact</Link>
         <Link className={getLinkClass('/about')} href="/about">About</Link>
-        {isAuthenticated && (
+        {isAuthenticated && user?.role?.toLowerCase() === 'tenant' && (
           <Link className={getLinkClass('/tenant/dashboard')} href="/tenant/dashboard">
             My Portal
           </Link>
+        )}
+        {isAuthenticated && user?.role?.toLowerCase() !== 'tenant' && (
+          <a
+            className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary transition-colors pb-1"
+            href={process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin'}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Admin Panel
+          </a>
         )}
       </nav>
 
@@ -51,9 +61,10 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             {/* Avatar + name */}
             <Link
-              href="/tenant/dashboard"
+              href={user?.role?.toLowerCase() === 'tenant' ? '/tenant/dashboard' : (process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || 'http://127.0.0.1:8000/admin')}
               id="navbar-dashboard-link"
               className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:bg-surface-container"
+              {...(user?.role?.toLowerCase() !== 'tenant' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
             >
               <div
                 className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"

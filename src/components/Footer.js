@@ -16,6 +16,15 @@ export default function Footer() {
         <Link className="text-on-surface-variant dark:text-surface-variant font-label-caps hover:text-primary hover:underline transition-all" href="/contact">Contact Support</Link>
         </nav>
         </div>
+        <div className="w-full border-t border-outline-variant/20 py-4 px-margin-desktop text-center">
+            <p className="text-xs text-on-surface-variant/60 dark:text-surface-variant/60">
+                Powered by{' '}
+                <span className="font-semibold text-primary/80">Ayyub Humeid</span>
+                {' '}&amp;{' '}
+                <span className="font-semibold text-primary/80">Abed Al Aziz Al Mofti</span>
+                {' '}Engineers
+            </p>
+        </div>
         </footer>
     );
 }

@@ -139,16 +139,9 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
-        // After registration, if a checkout URL was saved, the user must create
-        // their company first. Send them to /register/agency with the checkout
-        // URL as its returnUrl so after company creation they land on checkout.
-        const checkoutReturnUrl = typeof window !== 'undefined' ? localStorage.getItem('auth_return_url') : null;
-        if (checkoutReturnUrl) {
-          localStorage.removeItem('auth_return_url');
-          router.push(`/register/agency?returnUrl=${encodeURIComponent(checkoutReturnUrl)}`);
-        } else {
-          router.push('/tenant/dashboard');
-        }
+        // Tenant registration always lands on the tenant dashboard.
+        // (Only agency flows ever need to redirect to /register/agency.)
+        router.push('/tenant/dashboard');
         return { success: true };
       }
 

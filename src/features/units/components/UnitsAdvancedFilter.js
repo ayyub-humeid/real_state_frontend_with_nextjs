@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const AMENITIES = ['Parking', 'Gym', 'Swimming Pool', 'Pet Friendly', 'Security', 'Rooftop Garden'];
+const AMENITIES = ['Parking', 'Balcony', 'Gym', 'Swimming Pool', 'Pet Friendly', 'Security', 'Rooftop Garden'];
 
 export default function UnitsAdvancedFilter({ isOpen, onClose, filters, onApplyFilters }) {
     const [localFilters, setLocalFilters] = useState({

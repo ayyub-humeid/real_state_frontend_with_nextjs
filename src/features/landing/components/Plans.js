@@ -128,11 +128,11 @@ export const Plans = () => {
                                 {`Select ${plan.name}`}
                             </Link>
                             {isRecommended && (
-                                <Link href="/register/agency">
+                                <Link href="/register/agency?trial=true">
                                     <div
                                         className={` text-[white] bg-[#FF8C00] text-center w-full py-4 rounded-xl font-button transition-all`}
                                     >
-                                        {isRecommended ? 'Start 14-Day Free Trial' : `Select ${plan.name}`}
+                                        Start 14-Day Free Trial
                                     </div>
                                 </Link>
                             )}

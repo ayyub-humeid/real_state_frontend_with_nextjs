@@ -9,6 +9,7 @@ function AgencyProfileFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get('returnUrl');
+  const isTrial = searchParams.get('trial') === 'true';
   const auth = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -57,6 +58,7 @@ function AgencyProfileFormContent() {
     payload.append('phone', formData.phone);
     payload.append('password', formData.password);
     payload.append('password_confirmation', formData.password_confirmation);
+    payload.append('with_trial', isTrial ? '1' : '0');
     if (formData.address) payload.append('address', formData.address);
     // Note: website is collected but not sent as it is not in the validation rules
     if (logo) payload.append('logo', logo);
