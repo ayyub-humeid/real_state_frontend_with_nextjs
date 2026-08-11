@@ -13,6 +13,7 @@ function AgencyProfileFormContent() {
   const auth = useAuth();
   const [formData, setFormData] = useState({
     name: '',
+    admin_name: '',
     email: '',
     phone: '',
     website: '',
@@ -54,6 +55,7 @@ function AgencyProfileFormContent() {
 
     const payload = new FormData();
     payload.append('name', formData.name);
+    payload.append('admin_name', formData.admin_name);
     payload.append('email', formData.email);
     payload.append('phone', formData.phone);
     payload.append('password', formData.password);
@@ -147,6 +149,18 @@ function AgencyProfileFormContent() {
               type="text"
             />
             {errors.name && <span className="text-error text-sm">{errors.name[0]}</span>}
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN NAME</label>
+            <input
+              name="admin_name"
+              value={formData.admin_name}
+              onChange={handleInputChange}
+              className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.admin_name ? 'border-error ring-1 ring-error' : ''}`}
+              placeholder="e.g. John Doe"
+              type="text"
+            />
+            {errors.admin_name && <span className="text-error text-sm">{errors.admin_name[0]}</span>}
           </div>
           <div className="flex flex-col gap-2">
             <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN EMAIL</label>
