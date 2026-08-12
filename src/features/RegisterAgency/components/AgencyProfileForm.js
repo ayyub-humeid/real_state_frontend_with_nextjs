@@ -55,11 +55,14 @@ function AgencyProfileFormContent() {
 
     const payload = new FormData();
     payload.append('name', formData.name);
-    payload.append('admin_name', formData.admin_name);
-    payload.append('email', formData.email);
-    payload.append('phone', formData.phone);
-    payload.append('password', formData.password);
-    payload.append('password_confirmation', formData.password_confirmation);
+    if (!auth.user) {
+      payload.append('admin_name', formData.admin_name);
+      payload.append('email', formData.email);
+      payload.append('password', formData.password);
+      payload.append('password_confirmation', formData.password_confirmation);
+    }
+    
+    if (formData.phone) payload.append('phone', formData.phone);
     payload.append('with_trial', isTrial ? '1' : '0');
     if (formData.address) payload.append('address', formData.address);
     // Note: website is collected but not sent as it is not in the validation rules
@@ -75,14 +78,19 @@ function AgencyProfileFormContent() {
       // Agency created — now auto-login with the admin credentials they just entered.
       // This way the user lands on checkout already authenticated.
       if (returnUrl) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_return_url', returnUrl);
+        if (!auth.user) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('auth_return_url', returnUrl);
+          }
+          const loginResult = await auth.login(formData.email, formData.password);
+          if (!loginResult?.success) {
+            // Login failed after agency creation (edge case) — redirect anyway so they can log in manually
+            router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+            return;
+          }
         }
-        const loginResult = await auth.login(formData.email, formData.password);
-        if (!loginResult?.success) {
-          // Login failed after agency creation (edge case) — redirect anyway so they can log in manually
-          router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-        }
+        // If already logged in, or if login succeeds, redirect to returnUrl
+        router.push(returnUrl);
         // auth.login() handles the redirect: it will push to auth_return_url or /tenant/dashboard
         // Since there is no auth_return_url saved at this point, we push manually.
         router.push(returnUrl);
@@ -150,34 +158,38 @@ function AgencyProfileFormContent() {
             />
             {errors.name && <span className="text-error text-sm">{errors.name[0]}</span>}
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN NAME</label>
-            <input
-              name="admin_name"
-              value={formData.admin_name}
-              onChange={handleInputChange}
-              className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.admin_name ? 'border-error ring-1 ring-error' : ''}`}
-              placeholder="e.g. John Doe"
-              type="text"
-            />
-            {errors.admin_name && <span className="text-error text-sm">{errors.admin_name[0]}</span>}
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN EMAIL</label>
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.email ? 'border-error ring-1 ring-error' : ''}`}
-              placeholder="admin@agency.com"
-              type="email"
-            />
-            <span className="text-xs text-on-surface-variant flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">info</span>
-              You’ll use this email to log in to your dashboard.
-            </span>
-            {errors.email && <span className="text-error text-sm">{errors.email[0]}</span>}
-          </div>
+          {!auth.user && (
+            <div className="flex flex-col gap-2">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN NAME</label>
+              <input
+                name="admin_name"
+                value={formData.admin_name}
+                onChange={handleInputChange}
+                className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.admin_name ? 'border-error ring-1 ring-error' : ''}`}
+                placeholder="e.g. John Doe"
+                type="text"
+              />
+              {errors.admin_name && <span className="text-error text-sm">{errors.admin_name[0]}</span>}
+            </div>
+          )}
+          {!auth.user && (
+            <div className="flex flex-col gap-2">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN EMAIL</label>
+              <input
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.email ? 'border-error ring-1 ring-error' : ''}`}
+                placeholder="admin@agency.com"
+                type="email"
+              />
+              <span className="text-xs text-on-surface-variant flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">info</span>
+                You’ll use this email to log in to your dashboard.
+              </span>
+              {errors.email && <span className="text-error text-sm">{errors.email[0]}</span>}
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <label className="font-label-caps text-label-caps text-on-surface-variant">PHONE NUMBER</label>
             <input
@@ -204,46 +216,60 @@ function AgencyProfileFormContent() {
         </div>
 
         {/* Admin Credentials Banner */}
-        <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
-          <span className="material-symbols-outlined text-primary text-[20px] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>admin_panel_settings</span>
-          <div>
-            <p className="font-label-caps text-label-caps text-primary mb-0.5">ADMIN LOGIN CREDENTIALS</p>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              The password below will be your <strong>admin account password</strong> used to log in to your agency dashboard. Keep it secure &mdash; this is not visible to other users.
-            </p>
+        {!auth.user ? (
+          <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+            <span className="material-symbols-outlined text-primary text-[20px] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>admin_panel_settings</span>
+            <div>
+              <p className="font-label-caps text-label-caps text-primary mb-0.5">ADMIN LOGIN CREDENTIALS</p>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                The password below will be your <strong>admin account password</strong> used to log in to your agency dashboard. Keep it secure &mdash; this is not visible to other users.
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-start gap-3 bg-secondary/10 border border-secondary/20 rounded-xl px-4 py-3">
+            <span className="material-symbols-outlined text-secondary text-[20px] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>verified_user</span>
+            <div>
+              <p className="font-label-caps text-label-caps text-secondary mb-0.5">ACCOUNT DETECTED</p>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                You are currently logged in as <strong>{auth.user.name}</strong>. This agency profile will be automatically linked to your account, and you will become its administrator.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Password Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          <div className="flex flex-col gap-2">
-            <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN PASSWORD</label>
-            <input
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.password ? 'border-error ring-1 ring-error' : ''}`}
-              placeholder="••••••••"
-              type="password"
-            />
-            <span className="text-xs text-on-surface-variant flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">lock</span>
-              Must be at least 8 characters.
-            </span>
-            {errors.password && <span className="text-error text-sm">{errors.password[0]}</span>}
+        {!auth.user && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div className="flex flex-col gap-2">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">ADMIN PASSWORD</label>
+              <input
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={`bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md ${errors.password ? 'border-error ring-1 ring-error' : ''}`}
+                placeholder="••••••••"
+                type="password"
+              />
+              <span className="text-xs text-on-surface-variant flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">lock</span>
+                Must be at least 8 characters.
+              </span>
+              {errors.password && <span className="text-error text-sm">{errors.password[0]}</span>}
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="font-label-caps text-label-caps text-on-surface-variant">CONFIRM PASSWORD</label>
+              <input
+                name="password_confirmation"
+                value={formData.password_confirmation}
+                onChange={handleInputChange}
+                className="bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md"
+                placeholder="••••••••"
+                type="password"
+              />
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-label-caps text-label-caps text-on-surface-variant">CONFIRM PASSWORD</label>
-            <input
-              name="password_confirmation"
-              value={formData.password_confirmation}
-              onChange={handleInputChange}
-              className="bg-surface-container-low border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all font-body-md"
-              placeholder="••••••••"
-              type="password"
-            />
-          </div>
-        </div>
+        )}
         <div className="flex flex-col gap-2">
           <label className="font-label-caps text-label-caps text-on-surface-variant">OFFICE ADDRESS</label>
           <textarea

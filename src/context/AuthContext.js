@@ -113,7 +113,11 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem('auth_return_url');
           router.push(returnUrl);
         } else {
-          router.push('/tenant/dashboard');
+          if (userData.role?.toLowerCase() === 'tenant') {
+            router.push('/tenant/dashboard');
+          } else {
+            router.push('/');
+          }
         }
         return { success: true };
       }
@@ -139,9 +143,11 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setIsAuthenticated(true);
 
-        // Tenant registration always lands on the tenant dashboard.
-        // (Only agency flows ever need to redirect to /register/agency.)
-        router.push('/tenant/dashboard');
+        if (userData.role?.toLowerCase() === 'tenant') {
+          router.push('/tenant/dashboard');
+        } else {
+          router.push('/');
+        }
         return { success: true };
       }
 

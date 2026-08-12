@@ -12,7 +12,7 @@ const ROLES = [
 ];
 
 function RegisterPageContent() {
-  const { register, login, loading: authLoading } = useAuth();
+  const { register, login, loading: authLoading, user } = useAuth();
   const searchParams = useSearchParams();
   const [selectedRole, setSelectedRole] = useState('tenant');
 
@@ -68,31 +68,43 @@ function RegisterPageContent() {
       }
     } else {
       // Agency Flow
-      if (!formData.name || !formData.admin_name || !formData.email || !formData.password) {
-        setError('Please fill in all required fields.');
-        setIsSubmitting(false);
-        return;
-      }
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match.');
-        setIsSubmitting(false);
-        return;
-      }
-      if (formData.password.length < 8) {
-        setError('Admin password must be at least 8 characters.');
-        setIsSubmitting(false);
-        return;
+      if (!user) {
+        if (!formData.name || !formData.admin_name || !formData.email || !formData.password) {
+          setError('Please fill in all required fields.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match.');
+          setIsSubmitting(false);
+          return;
+        }
+        if (formData.password.length < 8) {
+          setError('Admin password must be at least 8 characters.');
+          setIsSubmitting(false);
+          return;
+        }
+      } else {
+        if (!formData.name) {
+          setError('Please fill in the Agency Name.');
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       const payload = new FormData();
       payload.append('name', formData.name);//Agency name
-      if (formData.admin_name) payload.append('admin_name', formData.admin_name);//Admin name
-      payload.append('email', formData.email);//Admin email
+      
+      if (!user) {
+        if (formData.admin_name) payload.append('admin_name', formData.admin_name);//Admin name
+        payload.append('email', formData.email);//Admin email
+        payload.append('password', formData.password);
+        payload.append('password_confirmation', formData.confirmPassword);
+      }
+      
       if (formData.agency_email) payload.append('agency_email', formData.agency_email);//Agency email
       if (formData.phone) payload.append('phone', formData.phone);
       if (formData.address) payload.append('address', formData.address);
-      payload.append('password', formData.password);
-      payload.append('password_confirmation', formData.confirmPassword);
       payload.append('with_trial', '0'); // don't create trial subscription here
 
       try {
@@ -103,10 +115,15 @@ function RegisterPageContent() {
           },
         });
 
-        // Auto login with the newly created admin credentials
-        const loginResult = await login(formData.email, formData.password);
-        if (!loginResult?.success) {
-          setError(loginResult?.message || 'Account created, but auto-login failed. Please sign in manually.');
+        if (!user) {
+          // Auto login with the newly created admin credentials
+          const loginResult = await login(formData.email, formData.password);
+          if (!loginResult?.success) {
+            setError(loginResult?.message || 'Account created, but auto-login failed. Please sign in manually.');
+          }
+        } else {
+          // If already logged in, redirect to their new admin dashboard or home
+          window.location.href = response?.data?.dashboard_url || '/';
         }
       } catch (err) {
         if (err.response?.data?.errors) {
@@ -181,13 +198,24 @@ function RegisterPageContent() {
               </div>
             )}
 
-            {selectedRole === 'agency' && (
+            {selectedRole === 'agency' && !user && (
               <div className="p-4 rounded-xl text-sm" style={{ background: '#f0fdfa', color: '#0f766e', border: '1px solid #ccfbf1' }}>
                 <div className="flex items-start gap-2">
                   <span className="material-symbols-outlined mt-0.5" style={{ fontSize: '18px' }}>info</span>
                   <div>
                     <p className="font-semibold mb-0.5">Basic Company Setup</p>
                     <p>Enter your primary company and admin info below. You can complete your full profile (logo, branches, settings) later from your dashboard.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {selectedRole === 'agency' && user && (
+              <div className="p-4 rounded-xl text-sm" style={{ background: '#eff6ff', color: '#1e3a8a', border: '1px solid #bfdbfe' }}>
+                <div className="flex items-start gap-2">
+                  <span className="material-symbols-outlined mt-0.5" style={{ fontSize: '18px' }}>verified_user</span>
+                  <div>
+                    <p className="font-semibold mb-0.5">Authenticated Account Detected</p>
+                    <p>You are signed in as <strong>{user.name}</strong>. The new agency will automatically be linked to your existing account. No need to provide a new admin email or password!</p>
                   </div>
                 </div>
               </div>
@@ -240,7 +268,7 @@ function RegisterPageContent() {
             )}
 
             {/* Admin Full Name (Agency Only) */}
-            {selectedRole === 'agency' && (
+            {selectedRole === 'agency' && !user && (
               <div>
                 <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Admin Full Name *</label>
                 <div className="relative">
@@ -263,27 +291,29 @@ function RegisterPageContent() {
             )}
 
             {/* Admin Email */}
-            <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
-                {selectedRole === 'agency' ? 'Admin Login Email *' : 'Email Address *'}
-              </label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>mail</span>
-                <input
-                  id="register-email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
-                  style={inputStyle}
-                  onFocus={(e) => Object.assign(e.target.style, focusStyle)}
-                  onBlur={(e) => Object.assign(e.target.style, blurStyle)}
-                />
+            {(!user || selectedRole !== 'agency') && (
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
+                  {selectedRole === 'agency' ? 'Admin Login Email *' : 'Email Address *'}
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>mail</span>
+                  <input
+                    id="register-email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    required
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Admin Phone */}
             <div>
@@ -331,51 +361,55 @@ function RegisterPageContent() {
             )}
 
             {/* Password */}
-            <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
-                {selectedRole === 'agency' ? 'Admin Password *' : 'Password *'}
-              </label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>lock</span>
-                <input
-                  id="register-password"
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder={selectedRole === 'agency' ? "Min. 8 characters" : "Min. 6 characters"}
-                  required
-                  className="w-full pl-12 pr-12 py-3.5 rounded-xl text-sm outline-none transition-all"
-                  style={inputStyle}
-                  onFocus={(e) => Object.assign(e.target.style, focusStyle)}
-                  onBlur={(e) => Object.assign(e.target.style, blurStyle)}
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2" style={{ color: '#94a3b8' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{showPassword ? 'visibility_off' : 'visibility'}</span>
-                </button>
+            {(!user || selectedRole !== 'agency') && (
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>
+                  {selectedRole === 'agency' ? 'Admin Password *' : 'Password *'}
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>lock</span>
+                  <input
+                    id="register-password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder={selectedRole === 'agency' ? "Min. 8 characters" : "Min. 6 characters"}
+                    required
+                    className="w-full pl-12 pr-12 py-3.5 rounded-xl text-sm outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2" style={{ color: '#94a3b8' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{showPassword ? 'visibility_off' : 'visibility'}</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Confirm Password */}
-            <div>
-              <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Confirm Password *</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>lock_reset</span>
-                <input
-                  id="register-confirm-password"
-                  type={showPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Repeat your password"
-                  required
-                  className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
-                  style={inputStyle}
-                  onFocus={(e) => Object.assign(e.target.style, focusStyle)}
-                  onBlur={(e) => Object.assign(e.target.style, blurStyle)}
-                />
+            {(!user || selectedRole !== 'agency') && (
+              <div>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#374151' }}>Confirm Password *</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2" style={{ fontSize: '20px', color: '#94a3b8' }}>lock_reset</span>
+                  <input
+                    id="register-confirm-password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Repeat your password"
+                    required
+                    className="w-full pl-12 pr-4 py-3.5 rounded-xl text-sm outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={(e) => Object.assign(e.target.style, focusStyle)}
+                    onBlur={(e) => Object.assign(e.target.style, blurStyle)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Submit */}
             <button
