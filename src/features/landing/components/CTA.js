@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export const CTA = () => {
         return (
                 <section className="max-w-[1200px] mx-auto px-margin-mobile md:px-margin-desktop py-24">
@@ -11,7 +13,7 @@ export const CTA = () => {
                                                         <div
                                                                 className={` text-[white] bg-[#FF8C00] text-center w-full py-4 rounded-xl font-button transition-all`}
                                                         >
-                                                                Start 14-Day Free Trial
+                                                                Get Started
                                                         </div>
                                                 </Link>
                                         </div>
