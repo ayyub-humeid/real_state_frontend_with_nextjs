@@ -11,7 +11,7 @@ export const CTA = () => {
                                         <div className="pt-4">
                                                 <Link href="/register/agency?trial=true">
                                                         <div
-                                                                className={` text-[white] bg-[#FF8C00] text-center w-full py-4 rounded-xl font-button transition-all`}
+                                                                className={` bg-white text-primary px-12 py-5 rounded-2xl font-button text-headline-md shadow-xl hover:scale-105 active:scale-95 transition-all`}
                                                         >
                                                                 Get Started
                                                         </div>
