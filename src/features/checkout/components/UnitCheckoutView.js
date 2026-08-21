@@ -154,6 +154,9 @@ export const UnitCheckoutView = ({ unit }) => {
 
     const currentStep = isAuthenticated ? 2 : 1;
 
+    // Prevent non-tenants from attempting to checkout (which causes backend scope errors)
+    const isTenant = user?.role?.toLowerCase() === 'tenant' || user?.role?.toLowerCase() === 'renter';
+
     return (
         <div style={{ background: '#f7f9fb', minHeight: 'calc(100vh - 64px)' }}>
             <main style={{ maxWidth: 1200, margin: '0 auto', padding: '3rem 1.5rem 5rem' }}>
@@ -184,12 +187,50 @@ export const UnitCheckoutView = ({ unit }) => {
                     {/* Right: step-dependent content */}
                     <div>
                         {isAuthenticated ? (
-                            <UnitCheckoutPaymentStep
-                                unit={unit}
-                                onPay={redirectToLeaseStripe}
-                                loading={paying}
-                                error={payError}
-                            />
+                            isTenant ? (
+                                <UnitCheckoutPaymentStep
+                                    unit={unit}
+                                    onPay={redirectToLeaseStripe}
+                                    loading={paying}
+                                    error={payError}
+                                />
+                            ) : (
+                                <div style={{
+                                    background: '#fff', borderRadius: 20, padding: '2.5rem',
+                                    border: '1px solid #e2e8f0', boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                                        <div style={{
+                                            width: 64, height: 64, borderRadius: '50%',
+                                            background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <span className="material-symbols-outlined" style={{ fontSize: 32, color: '#ef4444' }}>
+                                                block
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>
+                                        Tenants Only
+                                    </h3>
+                                    <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+                                        You are currently logged in as a <strong>{user?.role || 'Company Admin'}</strong>. Only tenant accounts can apply for a lease.
+                                    </p>
+                                    <button
+                                        onClick={() => {
+                                            localStorage.setItem('auth_return_url', returnUrl);
+                                            window.location.href = '/login';
+                                        }}
+                                        style={{
+                                            padding: '0.75rem 1.5rem', borderRadius: 10,
+                                            background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1',
+                                            fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        Log in with a Tenant Account
+                                    </button>
+                                </div>
+                            )
                         ) : (
                             <TenantUnauthStep returnUrl={returnUrl} />
                         )}
